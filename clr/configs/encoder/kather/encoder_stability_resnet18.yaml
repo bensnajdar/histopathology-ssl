@@ -1,0 +1,48 @@
+name: SimCLR::Encoder::Resnet18
+description: "Produce Stability Kather"
+hyperparameters:
+  global_batch_size: 512
+  image_rescale_size: 96
+  workers: 32
+  dataset: "kather"
+  model: "resnet18"
+  head_width: 512
+  embedding_size: 2048
+  tau: 0.5
+  augmentation1: "color_distort"
+  augmentation2: "random_crop"
+  optimizer: "lamb"
+  learning_rate: 0.006
+  l2_regularization: 1e-5
+  use_knn: true
+  full_eval_steps: '0:6000:11999'
+# records_per_epoch: 88375  # icpr dataset
+# records_per_epoch: 249776  # vgh dataset
+min_validation_period:
+  batches: 200
+searcher:
+  name: grid
+  metric: v_loss
+  max_length:
+    batches: 12000
+  smaller_is_better: true
+entrypoint: encoder_trial:ContrastiveTrial
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.1.0"
+bind_mounts:
+  - host_path: "/data/ldap/histopathologic"
+    container_path: "/data/ldap/histopathologic"
+    read_only: true
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 1
+  save_experiment_best: 0
+max_restarts: 0
+resources:
+  agent_label: pepper-cluster
+  max_slots: 8
+  slots_per_trial: 2
+reproducibility:
+  experiment_seed: 1643118217

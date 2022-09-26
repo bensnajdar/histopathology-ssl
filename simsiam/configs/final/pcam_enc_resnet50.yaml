@@ -1,0 +1,65 @@
+name: SimSiam::PCam::Encoder::ResNet50::Seed5
+description: Final PCam encoder
+labels: [simsiam, encoder, pcam]
+data:
+  worker: 4
+hyperparameters:
+  # -- dataset
+  dataset: patchcamelyon  # [Kather, PatchCamelyon, WSSS4LUAD, ICPR, ICPR-BAL, MIDOG]
+  dataset_val: patchcamelyon  
+  train_augmentation: medium_stack
+  val_augmentation: plain
+  img_rescale_size: 96
+  normalize_data: True
+  # -- model
+  method: simsiam
+  encoder: resnet50
+  feature_dim: 2048
+  pred_hidden_dim: 512
+  # -- optimizer
+  lr: 0.5
+  momentum: 0.5
+  weight_decay: 1e-4
+  use_lars: False
+  use_scheduler: True
+  # -- training 
+  global_batch_size: 256
+  freeze_pred: 99000 
+  # -- evaluation
+  additional_eval: 51200
+  plot_specific_iterations: '1'
+  use_knn: True
+reproducibility:
+  experiment_seed: 1643403533
+  # ResNet50
+  # 1: 1643403513
+  # 2: 1643403518
+  # 3: 1643403523
+  # 4: 1643403528
+  # 5: 1643403533
+searcher:
+  name: grid
+  metric: v_loss
+  smaller_is_better: true
+  max_length:
+     batches: 51200
+min_validation_period:
+  batches: 1024
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1  # Due to the KNN classifier all has to be on one machine
+  max_slots: 4
+  agent_label: pepper-cluster
+max_restarts: 0
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.0.0"
+bind_mounts:
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: trials:SimSiam

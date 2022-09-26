@@ -1,0 +1,88 @@
+name: Finetune::simclr::mlp
+description: Finetune-SimClr for mlp test
+data:
+  worker: 4
+hyperparameters:
+  method: simclr
+  encoder: 'resnet18' # base model
+  # Data
+  dataset: kather_h5_224_norm_split_90_10
+  number_classes: 9
+  split_size: 
+    type: const
+    val:
+      0.95
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: null
+  normalize_data:
+    type: const
+    val: true
+  # Encoder Evaluation
+  plot_embedding_each: 14000
+  # Model
+  freeze_encoder:
+    type: categorical
+    vals:
+      # - 900 # 2 epochs; TODO: is there an unwanted interaction between split_size and this number?
+      - true # freeze encoder
+  keep_enc_fc:
+    type: categorical
+    vals:
+      - true
+      - false
+  pred_head_structure:
+    type: categorical
+    vals:
+      - "three_layer_mlp"
+      - "two_layer_mlp"
+      - "one_layer_mlp"
+  pred_head_features:
+    type: const
+    val: 128
+  checkpoint_uuid:
+    type: categorical
+    vals:
+      - "069ce55d-9700-4ede-9f82-075f30bb222b"  # experiment 11147
+      - "523c65c3-6c30-4825-9243-f730381893f2"  # experiment 11147
+  # -- optimizer
+  momentum: 0.9
+  lr: 
+    type: categorical
+    vals:
+      - 0.005
+  weight_decay: 1e-4
+  scheduler: true
+  use_larc: false
+  # -- training 
+  global_batch_size: 64
+searcher:
+  name: grid
+  metric: v_acc
+  smaller_is_better: false
+  max_length:
+    batches: 14000 # 20 Epochs for 0.16 Split with batch size 32
+min_validation_period:
+  batches: 250
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: pepper-cluster
+  max_slots: 8
+max_restarts: 0
+# Docker container used
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

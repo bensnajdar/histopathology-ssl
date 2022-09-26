@@ -1,0 +1,78 @@
+name: Finetune::simclr
+description: Finetune-SimClr-Crush
+data:
+  worker: 4
+hyperparameters:
+  method: simclr
+  # Data
+  dataset: crush96
+  number_classes: 9
+  split_size: 
+    type: const
+    vals:
+    - 0.95
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: null
+  # Encoder Evaluation
+  plot_embedding_each: 450 # 1 Epoch
+  # Model
+  model_name: wide_resnet28w2 # base model
+  freeze_encoder:
+    type: categorical
+    vals:
+    - 900 # 2 epochs; TODO: is there an unwanted interaction between split_size and this number?
+    - true # freeze encoder
+  checkpoint_uuid:
+    type: categorical
+    vals:
+    - "7c9169d0-850d-4277-9ffb-41788b7d2212"  # head_width = 2048
+    - "2fee47fe-6c1d-4856-b1e6-b07c85ac380c"  # head_width = 128
+    - null
+  # -- optimizer
+  momentum: 0.9
+  lr: 
+    type: categorical
+    vals:
+    - 0.05
+    - 0.005
+  weight_decay: 1e-4
+  scheduler: true
+  use_larc: false
+  # -- training 
+  global_batch_size: 32
+  normalize_data:
+    type: const
+    val: true
+# Single run without hyperparameter tuning
+searcher:
+  name: grid
+  metric: v_acc
+  smaller_is_better: false
+  max_length:
+    batches: 9000 # 20 Epochs for 0.16 Split with batch size 32 
+min_validation_period:
+  batches: 450
+checkpoint_storage:
+  save_trial_best: 1
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: pepper-cluster
+  max_slots: 8
+max_restarts: 0
+# Docker container used
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.1.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

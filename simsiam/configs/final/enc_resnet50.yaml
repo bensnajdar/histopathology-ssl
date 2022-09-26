@@ -1,0 +1,68 @@
+name: Sim*::FinalEncoder::ResNet50
+description: Calc encoder with image size 224, but the final settings
+labels: [simtriplet, simsiam encoder, kather]
+data:
+  worker: 4
+hyperparameters:
+  # -- dataset
+  dataset: kather_h5_224_norm  # [Kather, PatchCamelyon, WSSS4LUAD, ICPR, ICPR-BAL, MIDOG]
+  dataset_val: kather_h5_224_norm_split_90_10  
+  train_augmentation: medium_stack
+  val_augmentation: plain
+  img_rescale_size: 224
+  normalize_data: True
+  # -- model
+  method: 
+    type: categorical
+    vals:
+    - simsiam
+    - simtriplet
+  encoder: resnet50
+  feature_dim: 2048
+  pred_hidden_dim: 512
+  # -- optimizer
+  lr: 0.5
+  momentum: 0.9
+  weight_decay: 1e-4
+  use_lars: False
+  use_scheduler: True
+  # -- training 
+  global_batch_size: 32
+  freeze_pred: 99000 
+  # -- evaluation
+  additional_eval: 3000
+  plot_specific_iterations: '1 2 3 4 5 6 7 8 9 10 20 30 40 50 100 500 1000'
+  use_knn: True
+reproducibility:
+  experiment_seed: 1643403513
+  # 1: 1643403513
+  # 2: 1643403518
+  # 3: 1643403523
+  # 4: 1643403528
+  # 5: 1643403533
+searcher:
+  name: grid
+  metric: v_loss
+  smaller_is_better: true
+  max_length:
+     batches: 90000
+min_validation_period:
+  batches: 1
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1  # Due to the KNN classifier all has to be on one machine
+  max_slots: 4
+  agent_label: pepper-cluster
+max_restarts: 0
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.0.0"
+bind_mounts:
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: trials:SimSiam

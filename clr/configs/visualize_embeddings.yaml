@@ -1,0 +1,63 @@
+name: visualize_embeddings
+hyperparameters:
+  workers:
+    type: const
+    val: 2
+  global_batch_size:
+    type: const
+    val: 128
+  dataset:
+    type: const
+    val: "wsss4luad"
+  model:
+    type: const
+    val: "wide_resnet"
+  checkpoint_uuid:
+    type: const
+    val: 'f20bc879-d6e3-4baa-9800-8c9ab9a0e230'  # also change encoder_experiment_id
+  encoder_experiment_id:
+    type: const
+    val: 10145
+min_validation_period:
+  batches: 100 # we only want evaluation
+searcher:
+  name: single
+  metric: accuracy
+  max_length:
+    batches: 100
+  smaller_is_better: true
+entrypoint: visualize_embeddings_trial:VisualizeEmbeddingsTrial
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.1.0"
+bind_mounts:
+  - host_path: "/data/ldap/histopathologic/processed/icpr_mitosis"
+    container_path: "/data/icpr"
+    read_only: true
+  - host_path: "/data/ldap/histopathologic/processed_read_only/Kather_96"
+    container_path: "/data/kather"
+    read_only: true
+  - host_path: "/data/ldap/histopathologic/original_read_only/PCam/PCam"
+    container_path: "/data/pcam"
+    read_only: true
+  - host_path: "/data/ldap/histopathologic/original_read_only/vgh_nki/vgh_nki/he/patches_h224_w224"
+    container_path: "/data/vgh"
+    read_only: true
+  - host_path: "/data/ldap/histopathologic/processed_read_only/WSSS4LUAD_96"
+    container_path: "/data/wsss4luad"
+    read_only: true
+  - host_path: "/data/determined/shared_fs/checkpoints"
+    container_path: "/checkpoints"
+    read_only: true
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 0
+  save_experiment_best: 0
+max_restarts: 0
+resources:
+  agent_label: dt-cluster
+  max_slots: 1
+  slots_per_trial: 1
+reproducibility:
+  experiment_seed: 1602840283

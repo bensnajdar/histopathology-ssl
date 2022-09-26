@@ -1,0 +1,93 @@
+description: PAWS-Kather-TestRun
+name: Kather::wide_resnet28w2::Finetune::Hyperopt_test
+data:
+  worker: 4
+hyperparameters:
+  copy_data: false
+  use_fp16: true
+  method: paws
+  # Data
+  dataset: kather96
+  number_classes: 9
+  normalize_data: true
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: null
+  split_size: 
+      type: categorical
+      vals:
+      - null # 1406 batches = 1 Epoch with batchsize 64 - (90000*1.0)/64 = 1046
+      - 0.25 
+      - 0.08
+  split_seed: 42
+  # Encoder Evaluation
+  plot_embedding_each: 7030  # 5Epoch
+  # Model
+  model_name: wide_resnet28w2 #base model
+  dropout_rate: 
+      type: categorical
+      vals: 
+      - 0.0
+  use_pred_head: True
+  output_dim: 128
+  freeze_encoder: 
+      type: categorical
+      vals:
+      - 900 # 2 epochs
+      - true # if > max length its never trained
+  checkpoint_uuid:
+      type: categorical
+      vals:
+      - 3489ab08-34cc-4b2d-b240-d792d20673b5 # from Experiment 10390
+      - null
+  # -- optimizer
+  momentum: 0.9
+  lr: 
+      type: categorical
+      vals:
+      - 0.005
+      - 0.001
+      - 0.0005
+      - 0.0001
+      - 0.00001
+  weight_decay: 1e-4
+  scheduler: 
+      type: categorical 
+      vals:
+      - true
+      - false
+  use_larc: false
+  # -- training 
+  global_batch_size: 64
+# Single run without hyperparameter tuning
+searcher:
+  name: grid
+  metric: v_acc
+  smaller_is_better: false
+  max_length:
+    batches: 70300 # 50 Epochs for 1.0 Split with batch size 64 
+min_validation_period:
+  batches: 1406
+checkpoint_storage:
+  save_trial_best: 1
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: pepper-cluster
+  max_slots: 4
+max_restarts: 0
+# Docker container used
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.0.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

@@ -1,0 +1,106 @@
+description: PAWS-Kather-Encoder
+name: PAWS::Kather::Encoder_training::Resnet50::Model_Snapshot
+data:
+  worker: 4
+labels:
+  - resnet50
+  - seed_from_1stExp
+  - model_snapshot
+  - epoch_checkpointing
+reproducibility:
+  experiment_seed: 1642165385 #from Exp ID 11149
+hyperparameters:
+  copy_data: false
+  use_fp16: true
+  # Data
+  dataset: kather_norm_224
+  split_size: 
+      type: categorical 
+      vals:
+      - 0.08
+  split_seed: 42
+  split_file: false
+  multicrop: 6
+  label_smoothing: 0.1
+  unique_classes_per_rank: false
+  data_seed: 152
+  # Augmentation Configuration
+  # Color
+  color_jitter_strength: 0.5
+  normalize: true
+  # Resize resolutions .... new to configure, standart in code
+  std_resize_resolution: 96
+  mc_resize_resolution: 48
+  # Crop Scaling .... new to configure, standart in code
+  crop_scale_min: 0.8
+  crop_scale_max: 1.0 
+  mc_scale_min: 0.6
+  mc_scale_max: 0.9
+  # Method
+  supervised_views: 2
+  unsupervised_batch_size: 32
+  supervised_imgs_per_class: 5
+  classes_per_batch: 9
+  # Encoder Evaluation
+  plot_embedding_each: 2812
+  # Model
+  model_name: 
+      type: categorical
+      vals:
+      - resnet50 #base model
+  use_pred_head: false
+  output_dim: 128
+  pretrained_base_model_path: 'None'
+  #'/data/ldap/oliver/determined_checkpoints/paws_histo/simclr_pretrained_models/wide_resnet/checkpoint_9206/state_dict.pth'
+  #Fine-tune Model (Prediction Head) .... new to configure, standart in code
+  pretrained_paws_model_path: 'None'
+  # finetuning 
+  number_classes: 9
+  # Loss
+  me_max: true
+  sharpen: 0.25
+  temperature: 0.1
+  # Optimizer
+  weight_decay: 3.0e-04
+  start_lr: 2.0
+  lr: 1.5
+  final_lr: 0.09
+  momentum: 0.50
+  nesterov: false
+  warmup: 4
+  # Batch
+  global_batch_size: 448
+# Single run without hyperparameter tuning
+searcher:
+  name: single
+  metric: t_loss
+  smaller_is_better: false
+  max_length:
+         batches: 28120
+min_validation_period:
+  batches: 2812
+checkpoint_policy: all
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 10
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: pepper-cluster
+  max_slots: 1
+max_restarts: 0
+# Docker container used
+#environment:
+#  image:
+#    cpu: "deepprojects/determined-pytorch-1.9-tf-2.5-cpu:1.0.0"
+#    gpu: "deepprojects/determined-cuda-112-pytorch-1.9-tf-2.5-gpu:1.0.0"
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.1.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.1.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: trials:Paws_Encoder

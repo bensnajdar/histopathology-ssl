@@ -1,0 +1,84 @@
+name: SimCLR::Encoder::Resnet50
+description: "Hyperparameter Tuning PCam"
+hyperparameters:
+  global_batch_size:
+    type: const
+    val: 512
+  image_rescale_size:
+    type: const
+    val: 96
+  workers: 32
+  dataset:
+    type: const
+    val: "pcam"
+  model: "resnet50"
+  head_width:
+    type: categorical
+    vals:
+      - 128
+      - 256
+      - 512
+  embedding_size:
+    type: categorical
+    vals:
+      - 2048
+      - 1024
+      - 512
+  tau:
+    type: double
+    minval: 0.1
+    maxval: 0.9
+  augmentation1:
+    type: const
+    val: "color_distort"
+  augmentation2:
+    type: const
+    val: "random_crop"
+  optimizer:
+    type: categorical
+    vals:
+      - lamb
+  learning_rate:
+    type: log
+    base: 10
+    minval: -3
+    maxval: -1
+  l2_regularization:
+    type: log
+    base: 10
+    minval: -6
+    maxval: -4
+  use_knn: true
+  full_eval_steps: '0:6000:11999'
+# records_per_epoch: 88375  # icpr dataset
+# records_per_epoch: 249776  # vgh dataset
+min_validation_period:
+  batches: 200
+searcher:
+  name: adaptive_asha
+  metric: v_loss
+  max_trials: 20
+  mode: standard
+  max_length:
+    batches: 12000
+  smaller_is_better: true
+entrypoint: encoder_trial:ContrastiveTrial
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.1.0"
+bind_mounts:
+  - host_path: "/data/ldap/histopathologic"
+    container_path: "/data/ldap/histopathologic"
+    read_only: true
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 0
+  save_experiment_best: 0
+max_restarts: 0
+resources:
+  agent_label: pepper-cluster
+  max_slots: 8
+  slots_per_trial: 4
+reproducibility:
+  experiment_seed: 1643118217

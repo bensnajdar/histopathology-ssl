@@ -1,0 +1,83 @@
+name: Semi-Super::SimTrip::VarianceExp::ResNet50
+description: let's check this when the val-test-accuracies split apart
+labels: [resnet50, kather, simtrip, exp_variance]
+data:
+  worker: 4
+hyperparameters:
+  # -- dataset
+  dataset: kather_h5_224_norm_split_90_10  # [Kather, PatchCamelyon, WSSS4LUAD, ICPR, ICPR-BAL, MIDOG]
+  split_size: 0.08
+  normalize_data: true
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: 96
+  # -- model
+  method: simtriplet
+  encoder: resnet50
+  pred_head_structure: one_layer_mlp  # [three_layer_mlp, two_layer_mlp, one_layer_mlp, simsiam=default]
+  pred_head_features: 128 # only relevant fot two_layer_mlp and three_layer_mlp
+  number_classes: 9
+  keep_enc_fc: 
+    type: categorical
+    vals:
+    - true
+    - false
+  freeze_encoder:  # Freeze for 4 Epochs -- [true, false, or int for warm_up]
+    type: categorical
+    vals:
+    - 900
+    - true
+  checkpoint_uuid: 
+    type: categorical
+    vals:
+    # - 26249c94-9316-4f6d-8061-04a48c67655a  # SimSiam ResNet 50
+    # - 956d04a9-4e56-4f88-ad7d-09165ff82957 
+    # - 15596bfc-6d39-462c-9bde-1065b3775e57 
+    # - 386c45a5-1fb6-4b3d-a460-544ee19d935d 
+    # - de04bed3-d6bd-4277-8bfb-3c0a06b0e094 
+    - 4affbe7c-f678-454a-b3c0-baa279781f73  # SimTriplet ResNet 50
+    - da7bc047-55d5-4dd4-8752-bf68c5a250bf 
+    - ea8fa6de-c1c0-49d8-8fc5-b1ed48d8fb07 
+    - 785cced2-e10e-4eb3-8933-5da5de15e51e 
+    - df400cef-8357-4e6b-8fcb-d35454115ad6 
+  # -- optimizer  
+  lr: 0.005
+  momentum: 0.9
+  weight_decay: 1e-4
+  use_larc: false
+  scheduler: True
+  # -- training 
+  global_batch_size: 32
+  # -- evaluation
+  plot_embedding_each: 4500
+reproducibility:
+  experiment_seed: 1
+searcher:
+  name: grid
+  metric: v_loss
+  smaller_is_better: true
+  max_length:
+     batches: 4500  # splits: 4500x32; full: 7050x256
+min_validation_period:
+  batches: 225
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  max_slots: 4
+  agent_label: pepper-cluster
+max_restarts: 0
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.0.0"
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

@@ -1,0 +1,104 @@
+description: PAWS-PCam-Finetune
+name: PCam::resnet18::Stability-Experiment
+labels:
+  - resnet18
+  - finetune
+  - pcam
+  - 20_Epochs
+  - 0.08_Split
+data:
+  worker: 4
+reproducibility:
+  experiment_seed: 1643366501
+hyperparameters:
+  copy_data: false
+  use_fp16: true
+  method: paws
+  # Data
+  dataset: patchcamelyon
+  number_classes: 2
+  normalize_data: true
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: 96
+  pred_head_structure:
+       type: categorical
+       vals:
+        - one_layer_mlp   # three_layer_mlp one_layer_mlp
+        #- three_layer_mlp
+  split_size: 
+      type: categorical
+      vals:
+      - 0.08 # (262144*0.08)/32 = 655 --> 20 epochs = 13100 , (262144/256 = 1024 Batches per Epoch) -> 20480 Batches
+  split_seed: 42
+  # Encoder Evaluation
+  plot_embedding_each: 655 # 655, 1024 # 1Epoch
+  # Model
+  model_name: resnet18 #base model
+  dropout_rate: 
+      type: categorical
+      vals: 
+      - 0.0
+  use_pred_head: True
+  output_dim: 128
+  freeze_encoder: 
+      type: categorical
+      vals:
+      - 2620 # 2 epochs
+      - true # if > max length its never trained
+  checkpoint_uuid:
+      type: categorical
+      vals:
+      #- 4a7caf9a-7ebe-4b05-b48d-8a642e3b6272  # 12126 - 91048    0.08, 1.0 Split
+      #- 602b5664-5686-447c-8f9e-6c47ad5ae04e # 12128 - 91050     0.008 Split
+      #- 337cf7b2-7843-4a00-9db7-7f5f04594e89 # 12130 - 91052    0.002 Split
+      #- null
+      # for stability experiments
+      - 763431ce-e228-411b-897f-988d85a9585a # Seed 1 12174	91855
+      - fd592486-e6f0-47dc-a5dd-1ebcc4b72ff6 # Seed 2 12175	91856
+      - fe84c880-65e2-43e1-b926-7ed56c1365ff # Seed 3 12176	91857
+      - 0d0c9ea2-ffc9-44a1-a3a8-584917ad466f # Seed 4 12177	91858
+      - d749cdb6-e848-48c8-97c6-ef1e65d72a0b # Seed 5 12178	91863
+  # -- optimizer
+  momentum: 0.9
+  lr: 
+      type: categorical
+      vals:
+      - 0.005
+  weight_decay: 1e-4
+  scheduler: true
+  use_larc: false
+  # -- training 
+  global_batch_size: 32 # 32, 256
+# Single run without hyperparameter tuning
+searcher:
+  name: grid
+  metric: v_acc
+  smaller_is_better: false
+  max_length:
+    batches: 13100 # 20 Epochs for 0.08 Split with batch size 32 -> 13100, full supervised 20480
+min_validation_period:
+  batches: 655 # 655, 1024
+checkpoint_storage:
+  save_trial_best: 1
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: pepper-cluster #dt-cluster pepper-cluster
+  max_slots: 4
+max_restarts: 0
+# Docker container used
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.0.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

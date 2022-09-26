@@ -1,0 +1,105 @@
+description: PAWS-Kather-PCam-Transfer-Finetune
+name: Kather-PCam-Transfer::resnet50::Stability_Experiment # Split_Reduce
+labels:
+  - resnet50
+  - finetune
+  - kather-pcam-transfer
+  - 20_Epochs
+  - 0.08_Split
+data:
+  worker: 4
+reproducibility:
+  experiment_seed: 1643118217 # 1643118217 fixed seed for split reduce
+hyperparameters:
+  copy_data: false
+  use_fp16: true
+  method: paws
+  # Data
+  dataset: patchcamelyon
+  number_classes: 2
+  normalize_data: true
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: 96
+  pred_head_structure:
+       type: categorical
+       vals:
+        - one_layer_mlp   # three_layer_mlp one_layer_mlp
+        #- three_layer_mlp
+  split_size: 
+      type: categorical
+      vals:
+      - 0.08 # (262144*0.08)/32 = 655 --> 20 epochs = 13100 , (262144/256 = 1024 Batches per Epoch) -> 20480 Batches
+  split_seed: 42
+  # Encoder Evaluation
+  plot_embedding_each: 655 # 655, 1024 # 1Epoch
+  # Model
+  model_name: resnet50 #base model
+  dropout_rate: 
+      type: categorical
+      vals: 
+      - 0.0
+  use_pred_head: True
+  output_dim: 128
+  freeze_encoder: 
+      type: categorical
+      vals:
+      - 2620 # 2 epochs
+      - true # if > max length its never trained
+  checkpoint_uuid:
+      type: categorical
+      vals:
+      # kather encoder
+      #- 64ecb7b1-f885-4a29-9536-04e4aa8e8d1b  # 11149 - 81216 0.08,1.0 Split
+      #- de9fc489-6960-46c4-83b9-c5543f8899be # 11149 - 81215 0.008 Split
+      #- 45433f15-321c-4c56-b938-25a3c128f3fc # 11149 - 81244 0.002 Split
+      #- null
+      # for stability experiments
+      - a6eddd47-425f-4b92-a8e7-a79a67a2479d # Seed 1 - 11546 84089
+      - 0f8c1c69-a06b-4f7c-b820-0ae334398c14 # Seed 2 - 11651 84689
+      - 0f9767a2-28d9-4e67-9e88-35ccea32a3e3 # Seed 3 - 11652 84690
+      - 82c0d973-c448-4369-867b-e8e82982797a # Seed 4 - 11549 84092
+      - cf6b2ab5-4c8f-4432-965b-8f25fe4193f4 # Seed 5 - 11550 84093
+  # -- optimizer
+  momentum: 0.9
+  lr: 
+      type: categorical
+      vals:
+      - 0.005
+  weight_decay: 1e-4
+  scheduler: true
+  use_larc: false
+  # -- training 
+  global_batch_size: 32 # 32, 256
+# Single run without hyperparameter tuning
+searcher:
+  name: grid
+  metric: v_acc
+  smaller_is_better: false
+  max_length:
+    batches: 13100 # 20 Epochs for 0.08 Split with batch size 32 -> 13100, full supervised 20480
+min_validation_period:
+  batches: 655 # 655, 1024
+checkpoint_storage:
+  save_trial_best: 1
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: dt-cluster #dt-cluster pepper-cluster
+  max_slots: 4
+max_restarts: 0
+# Docker container used
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.0.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

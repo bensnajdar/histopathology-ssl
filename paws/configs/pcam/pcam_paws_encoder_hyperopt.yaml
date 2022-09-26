@@ -1,0 +1,126 @@
+description: PAWS-PCAM-Encoder
+name: PAWS::PCAM::Encoder_training::resnet18::HyperOpt
+data:
+  worker: 4
+labels:
+  - resnet18
+  - 0.008_split
+  - 10_epochs
+  - hyperopt
+reproducibility:
+  experiment_seed: 1643403513
+hyperparameters:
+  copy_data: false
+  use_fp16: true
+  # Data
+  dataset: patchcamelyon
+  split_size: 
+      type: categorical 
+      vals:
+      - 0.008
+  split_seed: 42
+  split_file: false
+  multicrop: 6
+  label_smoothing: 0.1
+  unique_classes_per_rank: false
+  data_seed: 152
+  # Augmentation Configuration
+  # Color
+  color_jitter_strength: 0.5
+  normalize: true
+  # Resize resolutions .... new to configure, standart in code
+  std_resize_resolution: 96
+  mc_resize_resolution: 48
+  # Crop Scaling .... new to configure, standart in code
+  crop_scale_min: 0.8
+  crop_scale_max: 1.0 
+  mc_scale_min: 0.6
+  mc_scale_max: 0.9
+  # Method
+  supervised_views: 2
+  unsupervised_batch_size: 64      
+  supervised_imgs_per_class: 32
+  classes_per_batch: 2
+  # Encoder Evaluation
+  plot_embedding_each: 4094  #262000/64 = 4094 batches per epoch
+  # Model
+  model_name: 
+      type: categorical
+      vals:
+      - resnet18 #base model, resnet18, resnet50, wide_resnet28w2
+  use_pred_head: false
+  output_dim: 128
+  pretrained_base_model_path: 'None'
+  #'/data/ldap/oliver/determined_checkpoints/paws_histo/simclr_pretrained_models/wide_resnet/checkpoint_9206/state_dict.pth'
+  #Fine-tune Model (Prediction Head) .... new to configure, standart in code
+  pretrained_paws_model_path: 'None'
+  # finetuning 
+  number_classes: 2
+  # Loss
+  me_max: true
+  sharpen: 0.25
+  temperature: 0.1
+  # Optimizer
+  weight_decay:
+      type: double
+      minval: 1.0e-7
+      maxval: 1.0e-3
+  start_lr:
+      type: double
+      minval: 0.2
+      maxval: 2.5
+  lr: 
+      type: double
+      minval: 0.1
+      maxval: 3.5
+  final_lr:
+      type: double
+      minval: 1.0e-4
+      maxval: 1.0e-1
+  momentum:
+      type: double
+      minval: 0.2
+      maxval: 0.9
+  nesterov: false
+  warmup: 
+      type: int
+      minval: 1
+      maxval: 5
+  # Batch
+  global_batch_size: 448
+# Single run without hyperparameter tuning
+searcher:
+  name: adaptive_asha
+  metric: t_loss
+  smaller_is_better: true
+  max_length:
+         batches: 40940 # 81880 = 20 Epochs
+  max_trials: 200 # number of configurations to evaluate
+  mode: aggressive
+  divisor: 3
+min_validation_period:
+  batches: 1
+checkpoint_storage:
+  save_trial_best: 1
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: pepper-cluster
+  max_slots: 4
+max_restarts: 0
+# Docker container used
+#environment:
+#  image:
+#    cpu: "deepprojects/determined-pytorch-1.9-tf-2.5-cpu:1.0.0"
+#    gpu: "deepprojects/determined-cuda-112-pytorch-1.9-tf-2.5-gpu:1.0.0"
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.1.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.1.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: trials:Paws_Encoder

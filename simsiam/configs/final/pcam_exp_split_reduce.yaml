@@ -1,0 +1,86 @@
+name: SimSiam::SplitExp::ResNet18
+description: "Split Reduce Experiment | Encoder: ResNet18-PCam | Downstream: Lizard"
+labels: [simsiam, exp_split_reduce]
+data:
+  worker: 4
+hyperparameters:
+  # -- dataset
+  dataset: lizard  # [kather_h5_224_norm_split_90_10, patchcamelyon, tcga, lizard]
+  split_size: 1.0  # Handled by start_split_experiments.py
+  normalize_data: true
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: 96
+  # -- model
+  method: simsiam
+  encoder: resnet18  # resnet18, resnet50, wide_resnet28w2
+  pred_head_structure:
+    type: categorical
+    vals:  # [three_layer_mlp, two_layer_mlp, one_layer_mlp, simsiam=default]
+    - one_layer_mlp  
+    - three_layer_mlp
+  pred_head_features: 128 # only relevant fot two_layer_mlp and three_layer_mlp
+  number_classes: 9  # Handled by start_split_experiments.py
+  keep_enc_fc: 
+    type: categorical
+    vals:
+    - true
+    - false
+  freeze_encoder:  # Freeze for 4 Epochs -- [true, false, or int for warm_up]
+    type: categorical
+    vals:
+    - 900  # Handled by start_split_experiments.py
+    - true
+  checkpoint_uuid: 
+    type: categorical
+    vals:
+    - null
+    # SimTrip
+    # - 60689e1c-c94d-4ff3-8b7c-489f070da0d0  # ResNet18
+    # - 8811f0d3-4cc6-443e-ac31-97ed2233ee91  # ResNet50
+    # - e5189813-b253-41bb-abb3-69db51835a53  # Wide_ResNet
+    # SimSiam
+    - 7e6ba80e-8655-4f2d-a99e-f36917acb0da  # ResNet18
+    # - 346f9db4-934a-4596-95b0-a1397d1c2565  # ResNet50
+    # - b0906050-a06e-4a0c-8211-df917fc2e9bb  # Wide_ResNet 
+  # -- optimizer  
+  lr: 0.005
+  momentum: 0.9
+  weight_decay: 1e-4
+  use_larc: false
+  scheduler: True
+  # -- training 
+  global_batch_size: 256  # Handled by start_split_experiments.py
+  # -- evaluation
+  plot_embedding_each: 7020  # Handled by start_split_experiments.py
+reproducibility:
+  experiment_seed: 1643118217
+searcher:
+  name: grid
+  metric: v_loss
+  smaller_is_better: true
+  max_length:
+    batches: 7020  # Handled by start_split_experiments.py
+min_validation_period:
+  batches: 351  # Handled by start_split_experiments.py
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  max_slots: 4
+  agent_label: pepper-cluster
+max_restarts: 0
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.11-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.11-gpu:1.0.0"
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

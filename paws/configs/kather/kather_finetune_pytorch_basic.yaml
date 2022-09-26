@@ -1,0 +1,74 @@
+description: PAWS-Kather-TestRun
+name: Kather::Basic_PyTroch::SqueezeNet_Resnet50_Alexnet
+data:
+  worker: 4
+hyperparameters:
+  copy_data: false
+  use_fp16: true
+  method: pytorch_basic
+  # Data
+  dataset: kather224
+  number_classes: 9
+  normalize_data: true
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: null
+  split_size: 
+      type: categorical
+      vals:
+      - null # 703 batches = 1 Epoch 
+  split_seed: 42
+  # Encoder Evaluation
+  plot_embedding_each: 3515 # 5Epoch
+  # Model
+  pytorch_basic_model:
+      type: categorical 
+      vals:
+      - squeezenet1_1 
+      - resnet50
+      - alexnet
+  checkpoint_uuid: null
+  freeze_encoder: 0 
+  # -- optimizer
+  momentum: 0.9
+  lr: 
+      type: categorical
+      vals:
+      - 0.0003
+  weight_decay: 1e-4
+  scheduler: false
+  use_larc: false
+  # -- training 
+  global_batch_size: 128
+# Single run without hyperparameter tuning
+searcher:
+  name: grid
+  metric: v_acc
+  smaller_is_better: false
+  max_length:
+    batches: 35150 # 50 Epochs 
+min_validation_period:
+  batches: 703
+checkpoint_storage:
+  save_trial_best: 1
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  agent_label: pepper-cluster
+  max_slots: 4
+max_restarts: 0
+# Docker container used
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.10-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.10-gpu:1.0.0"
+# Bind Avocado into the docker container
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune

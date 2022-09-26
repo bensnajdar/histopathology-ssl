@@ -1,0 +1,112 @@
+name: SimTrip::StabilityExp::WideResNet
+description: "Stability Experiment | Encoder: WideResNet-PCam | Downstream: Kather"
+labels: [simtrip, exp_stability]
+data:
+  worker: 4
+hyperparameters:
+  # -- dataset
+  dataset: kather_h5_224_norm_split_90_10  # [kather_h5_224_norm_split_90_10, patchcamelyon, tcga]
+  split_size: 0.08
+  normalize_data: true
+  train_augmentation: light_stack
+  test_augmentation: plain
+  img_rescale_size: 96
+  # -- model
+  method: simtriplet
+  encoder: wide_resnet28w2
+  pred_head_structure: one_layer_mlp  # [three_layer_mlp, two_layer_mlp, one_layer_mlp, simsiam=default]
+  pred_head_features: 512 # only relevant fot two_layer_mlp and three_layer_mlp
+  number_classes: 
+    type: categorical
+    vals:
+    # - 2  # PCam, TCGA
+    - 9  # Kather
+  keep_enc_fc: 
+    type: categorical
+    vals:
+    - true
+    - false
+  freeze_encoder:  # Freeze for 4 Epochs -- [true, false, or int for warm_up]
+    type: categorical
+    vals:
+    # - 2620  # PCAM
+    # - 1660  # TCGA
+    - 900  # KAther
+    - true
+  checkpoint_uuid: 
+    type: categorical
+    vals:
+    # - 0afa8dfb-0844-45b7-bb1f-8f34b0dfdbe0  # SimSiam ResNet 18
+    # - 09283703-bba0-4caa-991f-dbeec72d2159 
+    # - 73ad7abd-a417-466b-8f1c-e6b718dc2c96 
+    # - c093de7d-374d-4057-aaee-b9fa9c28c1a5 
+    # - 7e6ba80e-8655-4f2d-a99e-f36917acb0da 
+    # - 5db37302-4852-414d-a8ba-d5beb349ea65  # SimSiam ResNet 50
+    # - 346f9db4-934a-4596-95b0-a1397d1c2565 
+    # - 9f3c77fc-1bc5-461b-a84e-1705854bdac5 
+    # - dfd34a61-947b-45a8-9aa7-08d3bc2559e8 
+    # - d16b3f24-c610-4113-bf1f-0ce8b21aacdc 
+    # - b3b67228-d1e1-457a-b01b-53d90ce98523  # SimSiam Wide_ResNet
+    # - 4e243778-36ec-4b74-9c89-5d86e8646b77 
+    # - ea3ffdcb-4bd6-4398-ba3b-3721f90d4074 
+    # - b0906050-a06e-4a0c-8211-df917fc2e9bb 
+    # - 049b797b-3d99-422b-a9f4-a73db207706a 
+    # - 60689e1c-c94d-4ff3-8b7c-489f070da0d0  # SimTriplet ResNet 18
+    # - f5c22617-69af-4af0-a048-a4be67e9224b 
+    # - 9c17b274-683f-4c03-b410-fa18641b19fb 
+    # - dfc887a0-673d-414d-b4e9-0d939c346c1e 
+    # - 930a6c77-b41e-4f0c-a0d2-fdc89fa14c1d 
+    # - c745efcf-74e4-4bdc-8e18-0491c89e2810  # SimTriplet ResNet 50
+    # - dc425429-d60e-4f0e-b47a-7fa4d80e0819 
+    # - 3ea8005f-59ef-4a8e-97d6-320ffcab97b0 
+    # - 8da45976-4424-4476-bca7-87b264f59610 
+    # - 8811f0d3-4cc6-443e-ac31-97ed2233ee91 
+    - e5189813-b253-41bb-abb3-69db51835a53  # SimTriplet Wide_ResNet
+    - 6e1ddd4b-8326-4a87-8617-ea292378e9c9 
+    - 306727a8-5c02-4a80-94da-c2440e3170b6 
+    - 44117756-da02-4b72-948a-252de69bb156 
+    - e5225703-8061-406b-822e-8d1ec416591e 
+  # -- optimizer  
+  lr: 0.005
+  momentum: 0.9
+  weight_decay: 1e-4
+  use_larc: false
+  scheduler: True
+  # -- training 
+  global_batch_size: 32
+  # -- evaluation
+  plot_embedding_each: 4500
+reproducibility:
+  experiment_seed: 1
+searcher:
+  name: grid
+  metric: v_loss
+  smaller_is_better: true
+  max_length:
+    # Kather: split: 4500 | 255 | 32 
+    # PCam:   split: 13100 | 655 | 32
+    # TCGA:   split: 8300 | 415 | 32
+     batches: 4500  
+min_validation_period:
+  batches: 255
+checkpoint_storage:
+  save_trial_best: 0
+  save_trial_latest: 1
+  save_experiment_best: 0
+resources:
+  slots_per_trial: 1
+  max_slots: 4
+  agent_label: pepper-cluster
+max_restarts: 0
+environment:
+  image:
+    cpu: "deepprojects/determined-pytorch-1.11-cpu:1.0.0"
+    gpu: "deepprojects/determined-cuda-113-pytorch-1.11-gpu:1.0.0"
+bind_mounts:
+ - host_path: "/data/determined/shared_fs/checkpoints"
+   container_path: "/checkpoints"
+   read_only: true
+ - host_path: /data/ldap
+   container_path: /data/ldap
+   read_only: true
+entrypoint: finetune_trial:Finetune
