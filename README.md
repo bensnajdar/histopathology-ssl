@@ -1,11 +1,11 @@
 # Investigation of Semi- and Self-Supervised Methods in Histopathology
  This repository is part of the paper XYZ. It contains the implementations of different semi- and self-supervised methods [SimCLR](https://arxiv.org/pdf/2002.05709.pdf), [PAWS](https://arxiv.org/pdf/2104.13963.pdf), [SimSiam](https://arxiv.org/pdf/2011.10566.pdf), and [SimTriplet](https://arxiv.org/abs/2103.05585) to study the benefit of such methods in histopathology. The implementation explores the methods with various network settings on public histopathological datasets, focusing on only a few labeled data available in the training process.
 
-![Benefits over architectural settings](./results/plots/readme2.png)
+![Benefits over architectural settings](./results/res/readme.png)
 
 
 # Result Data and Reproducability
-We provide our experimental data in the `result` folder to reproduce the results. Due to the scripts and notebooks found in the folder, you can create figures and tables used in the paper or explore the result data on your own. For example, the `reproduce_results.py` script creates all figures and tables except augmentation visualizations and XAI investigation, for these use the corresponding notebooks.
+We provide our experimental data in the `result/res` folder to reproduce the results or explore the data. Due to the scripts and notebooks found in the folder, you can create figures and tables used in the paper or explore the result data on your own. For example, the `reproduce.ipynb` notebook creates all figures and tables except augmentation visualizations and XAI investigation, for these use the corresponding notebooks.
 
 ```bash
 cd results

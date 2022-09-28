@@ -1,0 +1,10 @@
+# -- common
+__pycache__/
+
+# -- result stuff and checkpoints
+results/res/checkpoints
+results/table
+results/plots
+
+# -- allow
+!results/plots/t-sne

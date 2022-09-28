@@ -297,11 +297,15 @@ def create_stability_table(csv_path: str, result_path: str) -> None:
                 table_file.write(f"{VAL_TO_LABEL[method]} ({VAL_TO_LABEL[freeze_enc]}) & {round(np.mean(v_acc) * 100, 3):.2f}\% (+/- {round(np.std(v_acc)*100,3):.2f}) & {round(np.mean(test_acc) * 100, 3):.2f}\% (+/- {round(np.std(test_acc)*100,3):.2f})  & {round(np.mean(f1_acc) * 100, 3):.2f}\% (+/- {round(np.std(f1_acc)*100,3):.2f}) & {round(np.mean(test_f1) * 100, 3):.2f}\% (+/- {round(np.std(test_f1)*100,3):.2f}) \\\ \hline \n")
 
 
-if __name__ == '__main__':
+def reproduce_results():
     # -- reproduce paper figures
-    csv_files = [('csv/split_reduce.csv', 'plots/split_reduce'), ('csv/split_reduce_abl-fc.csv', 'plots/split_reduce_alb-fc')]
+    csv_files = [('res/csv/split_reduce.csv', 'plots/split_reduce'), ('res/csv/split_reduce_abl-fc.csv', 'plots/split_reduce_alb-fc')]
     for file_path, result_path in csv_files:
         create_split_reduce_plots(file_path, result_path)
     create_ece_plot(*csv_files[0])
     create_acc_plot(*csv_files[0])
-    create_stability_table('csv/stability.csv', 'table/encoder_sensivity')
+    create_stability_table('res/csv/stability.csv', 'table/encoder_sensivity')
+
+
+if __name__ == '__main__':
+    reproduce_results()

@@ -1,0 +1,68 @@
+kather:
+    base_path: './res/kather/'
+    data:
+        ADI:
+        - ADI-TCGA-EHKRGANT.tif
+        NORM:
+        - NORM-TCGA-VHSSPLGC.tif
+checkpoints:
+    # one_layer_mlp cp
+    # pcam->kather - 1-Layer-MLP
+    - 73256b71-8f5b-48e1-9a51-06fc43d8dd7a
+    - 75003ded-8091-46d2-9891-e1a836a47662
+    - 85e810f6-8242-4eca-89b4-1f83dbd70658
+    - 91e95588-b728-4544-a1a8-613006b2a92c
+    - af35af72-5343-4fd5-bb1a-8941a7e6de7d
+    - 405aba21-acb8-4801-b284-275e374c02c2
+    - 67fe2446-355d-4ba0-9198-8a388093392d
+    - 89eb7f1d-2be3-41fb-893e-a2b52b63d36d
+    - 7387da58-a60d-444b-ba8c-7c1ddd24e7ba #no-pretrain ftrue
+    - df617358-d279-4ee7-a34c-80a6039c3613 #no-pretrain ffalse
+    # kather->kather - 1-Layer-MLP
+    - 946263c1-134b-4a7d-88b4-82c461b207e9
+    - bdfc1c5c-649a-4d1c-b7a0-e0d9b9c23199 # hack needed simclr
+    - 66a9deb0-3906-4d26-b7e6-f271f538bb62
+    - 9016b4dc-c5ea-408a-bead-9bf61a068a92
+    - 2c6a32ca-c90a-4554-b21d-1f8862f90b05
+    - 9d3cfdab-9047-44ae-b62d-7f5108eeca70 # hack needed simclr
+    - 370774eb-27de-4481-9c1d-5d188cb40075
+    - 6f69243e-7fae-474d-9ed8-9abb3bec7e17
+    - 12231481-50bc-42e8-9a12-671e385c2208 #no-pretrain ftrue
+    - e8274133-8bfa-45d8-9032-7a58356bc3c8 #no-pretrain ffalse
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
