@@ -11,7 +11,6 @@ We provide our experimental data in the `result/res` folder to reproduce the res
 docker run -it --rm -p 8888:8888 deepprojects/notebook-showcase-ssl:0.1.2
 ```
 
-
 Alternativ, the `reproduce.ipynb` notebook creates all figures and tables except augmentation visualizations and XAI investigation, for these use the corresponding notebooks.
 
 ```bash
