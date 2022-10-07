@@ -8,7 +8,7 @@
 We provide our experimental data in the `result/res` folder to reproduce the results or explore the data. Due to the scripts and notebooks found in the folder, you can create figures and tables used in the paper or explore the result data on your own. For simplicity we provide a docker container with a suited python environment and the needed model checkpoints to create all plots from the paper. Install [docker](https://www.docker.com/) and execute the following comment to start the provided container:
 
 ```
-docker run -it --rm -p 8888:8888 deepprojects/notebook-showcase-ssl:0.1.2
+docker run -it --rm -p 8888:8888 deepprojects/notebook-showcase-ssl:0.1.3
 ```
 
 Alternativ, the `reproduce.ipynb` notebook creates all figures and tables except augmentation visualizations and XAI investigation, for these use the corresponding notebooks.
