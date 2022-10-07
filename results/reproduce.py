@@ -3,11 +3,10 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import warnings
 from pathlib import Path
 
 pd.set_option("plotting.backend", "plotly")  # -- set some plotly default stuff
-warnings.filterwarnings("ignore")  # -- supress pandas split warnings
+
 
 # -- constants defining plot estetics
 COLOR_SIMSIAM = '#00CC96'
